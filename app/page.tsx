@@ -48,7 +48,7 @@ export default function Page() {
   const aiSummary = complete ? aiSummaryText(competitiveness, profile.desiredMajor) : "성적과 희망 전공을 입력하면 나에게 맞는 수도권 수시 전략을 분석해드려요.";
   const strategyComment = complete ? strategyCommentText(competitiveness) : "먼저 나의 정보를 입력해주세요. 입력이 끝나면 서울·경기·인천 2027 수시 데이터를 기준으로 분석합니다.";
   const handleChange = (patch: Partial<StudentProfile>) => { setAnalysisStarted(false); setProfile((prev) => ({ ...prev, ...patch })); };
-  const startAnalysis = () => { if (!complete) return; setAnalysisStarted(true); document.getElementById("results")?.scrollIntoView({ behavior: "smooth" }); };
+  const startAnalysis = () => { if (!complete) return; setAnalysisStarted(true); setTimeout(() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" }), 0); };
 
   function resolveNames(admissionId: string) {
     const admission = admissionById.get(admissionId);
@@ -58,7 +58,7 @@ export default function Page() {
   }
 
   return <div className="app"><Header /><main>
-    <section className="hero"><Hero onStart={() => document.getElementById("profile")?.scrollIntoView({ behavior: "smooth" })} /><ScorePanel total={complete ? competitiveness.total : 0} aiSummary={aiSummary} /></section>
+    <section className="hero"><Hero onStart={() => document.getElementById("profile")?.scrollIntoView({ behavior: "smooth" })} /><ScorePanel total={competitiveness.total} aiSummary={aiSummary} ready={complete && analysisStarted} /></section>
     <section className="section" id="profile"><div className="sectionHead"><div><h2>나의 수시 정보</h2><div className="muted">처음에는 비워져 있습니다. 직접 입력해주세요.</div></div></div><StudentProfileTemplateForm profile={profile} onChange={handleChange} /><div style={{marginTop:14,display:"flex",justifyContent:"flex-end"}}><button className="primary" onClick={startAnalysis} disabled={!complete} style={{opacity:complete?1:.45,cursor:complete?"pointer":"not-allowed"}}>내 수시 6장 분석하기 →</button></div>{!complete && <div className="alert" style={{marginTop:12}}>💡 모든 항목을 입력하면 분석 버튼이 활성화됩니다.</div>}</section>
     {complete && analysisStarted && <><section className="section"><div className="grid"><CompetitivenessCard label="교과 경쟁력" value={competitiveness.subject} /><CompetitivenessCard label="학종 경쟁력" value={competitiveness.holistic} /><CompetitivenessCard label="수능최저 가능성" value={competitiveness.csatMinimum} /></div></section>
     <section className="section" id="results"><div className="sectionHead"><div><h2>🎯 나의 수시 6장</h2><div className="muted">서울 · 경기 · 인천 / 2027 데이터 기준</div></div><button className="secondary" onClick={() => setOffset((o) => nextShuffleOffset(o))}>조합 다시 짜기</button></div><div className="six">{recommendations.map((rec) => { const { universityName, departmentName } = resolveNames(rec.admissionId); const admission = admissionById.get(rec.admissionId); return <UniversityCard key={rec.admissionId} tier={rec.tier} universityName={universityName} departmentName={departmentName} score={rec.score} reason={`${rec.reason}${admission?.source?.type === "adiga" ? " · 2027 어디가 확인 데이터" : " · 프로토타입 데이터"}`} onShowReason={() => alert(`${universityName} ${departmentName}\n\n${rec.reason}`)} onCompare={() => alert("비교 기능 준비중")} />; })}</div></section>
