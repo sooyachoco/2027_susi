@@ -1,15 +1,9 @@
 import type { Admission, Department, University } from "@/lib/types";
-import {
-  MOCK_ADMISSIONS,
-  MOCK_DEPARTMENTS,
-  MOCK_UNIVERSITIES,
-} from "@/lib/data/mock";
+import { MOCK_ADMISSIONS, MOCK_DEPARTMENTS, MOCK_UNIVERSITIES } from "@/lib/data/mock";
+import { verified2027Admissions } from "@/lib/admission/verified2027";
 import type { AdmissionRepository } from "./AdmissionRepository";
 
-/**
- * mock 데이터 기반 구현체. 외부 API/크롤러/네트워크를 사용하지 않는다.
- * Promise 를 반환해 향후 비동기 실제 구현체와 동일한 사용 방식을 유지한다.
- */
+/** 개발 단계용 Hybrid Repository: 검증된 2027 데이터를 mock보다 우선한다. */
 export class MockAdmissionRepository implements AdmissionRepository {
   async getUniversities(): Promise<University[]> {
     return MOCK_UNIVERSITIES;
@@ -26,13 +20,29 @@ export class MockAdmissionRepository implements AdmissionRepository {
     departmentId?: string;
     type?: Admission["type"];
   }): Promise<Admission[]> {
-    return MOCK_ADMISSIONS.filter((a) => {
+    const mock = MOCK_ADMISSIONS.filter((a) => {
       if (params?.academicYear && a.academicYear !== params.academicYear) return false;
       if (params?.universityId && a.universityId !== params.universityId) return false;
       if (params?.departmentId && a.departmentId !== params.departmentId) return false;
       if (params?.type && a.type !== params.type) return false;
       return true;
     });
+
+    const verified = verified2027Admissions.filter((a) => {
+      if (params?.academicYear && a.academicYear !== params.academicYear) return false;
+      if (params?.universityId && a.universityId !== params.universityId) return false;
+      if (params?.departmentId && a.departmentId !== params.departmentId) return false;
+      if (params?.type && a.type !== params.type) return false;
+      return true;
+    });
+
+    const verifiedUniversities = new Set(verified.map((a) => a.universityId));
+    const verifiedDepartments = new Set(verified.map((a) => a.departmentId));
+    const fallback = mock.filter(
+      (a) => !verifiedUniversities.has(a.universityId) || !verifiedDepartments.has(a.departmentId),
+    );
+
+    return [...fallback, ...verified];
   }
 }
 
