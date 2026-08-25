@@ -3,12 +3,14 @@ import { verified2027Admissions as baseVerifiedAdmissions } from "./verified2027
 import { verified2027Universities, verified2027Departments, verified2027Admissions as realAdmissions } from "./real2027";
 import { metro2027Universities, metro2027Departments, metro2027Admissions } from "./metro2027Verified";
 import { VERIFIED_METRO_UNIVERSITIES, VERIFIED_METRO_DEPARTMENTS, VERIFIED_METRO_ADMISSIONS } from "./metroVerifiedAdditions";
+import { EXPANDED_METRO_UNIVERSITIES, EXPANDED_METRO_DEPARTMENTS, EXPANDED_METRO_ADMISSIONS } from "./metroVerifiedExpansion";
 import type { AdmissionQuery, AdmissionRepository } from "./types";
 
 const universities = dedupeById([
   ...verified2027Universities,
   ...metro2027Universities,
   ...VERIFIED_METRO_UNIVERSITIES,
+  ...EXPANDED_METRO_UNIVERSITIES,
   ...mockUniversities,
 ]);
 
@@ -16,6 +18,7 @@ const departments = dedupeById([
   ...verified2027Departments,
   ...metro2027Departments,
   ...VERIFIED_METRO_DEPARTMENTS,
+  ...EXPANDED_METRO_DEPARTMENTS,
   ...mockDepartments,
 ]);
 
@@ -24,6 +27,7 @@ const verifiedAdmissions = dedupeById([
   ...realAdmissions,
   ...metro2027Admissions,
   ...VERIFIED_METRO_ADMISSIONS,
+  ...EXPANDED_METRO_ADMISSIONS,
 ]);
 
 /** 실전 추천에는 검증된 2027 데이터만 사용한다. mock 데이터는 추천에서 제외한다. */
