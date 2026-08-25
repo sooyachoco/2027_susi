@@ -1,0 +1,1 @@
+Deployment trigger for the latest verified admission-data commit. No application logic.
