@@ -2,16 +2,32 @@ import type { Admission, Recommendation, StudentProfile } from "@/lib/types";
 
 /** 데이터 기반 6장 전략 엔진 1차 버전. 점수는 합격확률이 아닌 전략 적합도다. */
 export function recommendSixByData(student: StudentProfile, admissions: Admission[], offset = 0): Recommendation[] {
+  if (
+    student.gradeAverage === null ||
+    student.mockAverage === null ||
+    student.studentRecordLink === null ||
+    student.csatMinimumChance === null ||
+    student.track === null ||
+    student.desiredMajor.trim() === ""
+  ) {
+    return [];
+  }
+
+  const gradeAverage = student.gradeAverage;
+  const mockAverage = student.mockAverage;
+  const studentRecordLink = student.studentRecordLink;
+  const csatMinimumChance = student.csatMinimumChance;
+
   const scored = admissions.map((admission) => {
-    const gradeScore = clamp(100 - (student.gradeAverage - 1) * 10.5);
-    const recordScore = (student.studentRecordLink / 5) * 100;
-    const mockScore = clamp(100 - (student.mockAverage - 1) * 9);
+    const gradeScore = clamp(100 - (gradeAverage - 1) * 10.5);
+    const recordScore = (studentRecordLink / 5) * 100;
+    const mockScore = clamp(100 - (mockAverage - 1) * 9);
     let score = gradeScore * 0.35 + recordScore * 0.35 + mockScore * 0.30;
 
-    if (admission.type === "학종") score += student.studentRecordLink >= 4 ? 5 : -2;
-    if (admission.type === "교과") score += student.gradeAverage <= 2.5 ? 5 : -3;
-    if (admission.interview) score += student.studentRecordLink >= 4 ? 2 : -2;
-    if (admission.csatMinimum?.enabled) score += student.csatMinimumChance >= 4 ? 4 : -7;
+    if (admission.type === "학종") score += studentRecordLink >= 4 ? 5 : -2;
+    if (admission.type === "교과") score += gradeAverage <= 2.5 ? 5 : -3;
+    if (admission.interview) score += studentRecordLink >= 4 ? 2 : -2;
+    if (admission.csatMinimum?.enabled) score += csatMinimumChance >= 4 ? 4 : -7;
     if (admission.isMock === false) score += 2;
 
     return { admission, score: Math.round(clamp(score + offset)) };
