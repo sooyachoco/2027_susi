@@ -1,18 +1,16 @@
 import type { Admission, Recommendation, StudentProfile } from "@/lib/types";
+import { convertStudentToAdmissionScore, csatFit } from "./conversion";
 
-/** 2027 전형 데이터의 실제 속성을 반영하는 1차 전략 추천 엔진. 합격확률이 아닌 전략 적합도다. */
+/** 2027 전형 속성을 반영하는 전략 적합도 엔진. 합격확률이 아니다. */
 export function recommendSix(student: StudentProfile, admissions: Admission[], offset = 0): Recommendation[] {
   const scored = admissions.map((admission) => {
-    const grade = clamp(100 - (student.gradeAverage - 1) * 10.5);
-    const record = (student.studentRecordLink / 5) * 100;
-    const mock = clamp(100 - (student.mockAverage - 1) * 9);
-    let score = grade * 0.35 + record * 0.35 + mock * 0.30;
+    const converted = convertStudentToAdmissionScore(student, admission);
+    const minimumFit = csatFit(student, admission);
+    let score = converted.score;
 
-    if (admission.type === "학종") score += student.studentRecordLink >= 4 ? 5 : -2;
-    if (admission.type === "교과") score += student.gradeAverage <= 2.5 ? 5 : -3;
-    if (admission.interview) score += student.studentRecordLink >= 4 ? 2 : -2;
-    if (admission.csatMinimum?.enabled) score += student.csatMinimumChance >= 4 ? 4 : -7;
+    if (admission.csatMinimum?.enabled) score = score * 0.85 + minimumFit * 0.15;
     if (admission.isMock === false) score += 2;
+    score += strategicAdjustment(student, admission);
 
     return { admission, score: Math.round(clamp(score + offset)) };
   }).sort((a, b) => b.score - a.score);
@@ -26,10 +24,19 @@ export function recommendSix(student: StudentProfile, admissions: Admission[], o
   }));
 }
 
+function strategicAdjustment(student: StudentProfile, admission: Admission) {
+  let adjustment = 0;
+  if (admission.type === "학종") adjustment += student.studentRecordLink >= 4 ? 4 : -2;
+  if (admission.type === "교과") adjustment += student.gradeAverage <= 2.5 ? 4 : -3;
+  if (admission.interview) adjustment += student.studentRecordLink >= 4 ? 2 : -2;
+  if (admission.csatMinimum?.enabled) adjustment += student.csatMinimumChance >= 4 ? 2 : -5;
+  return adjustment;
+}
+
 function buildReason(admission: Admission, score: number) {
   const parts = [admission.type === "학종" ? "학생부 중심" : "교과 중심"];
   if (admission.interview) parts.push("면접 변수 있음");
-  if (admission.csatMinimum?.enabled) parts.push("수능최저 확인 필요");
+  if (admission.csatMinimum?.enabled) parts.push("수능최저 반영");
   if (admission.source?.type === "adiga" || admission.isMock === false) parts.push("2027 확인 데이터");
   return `${parts.join(" · ")} · 전략 적합도 ${score}`;
 }
