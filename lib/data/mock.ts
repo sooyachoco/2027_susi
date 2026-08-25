@@ -19,7 +19,14 @@ export const MOCK_DEPARTMENTS: Department[] = [
   { id: "d-kw-cie", universityId: "u-kw", name: "컴퓨터정보공학부", category: "자연계" },
 ];
 
-const MOCK_SOURCE = { type: "other" as const, document: "mock", collectedAt: "2026-08-25", confidence: 0 };
+const MOCK_SOURCE = {
+  type: "other" as const,
+  document: "mock",
+  academicYear: 2027,
+  collectedAt: "2026-08-25",
+  confidence: 0,
+};
+
 export const MOCK_ADMISSIONS: Admission[] = [
   { id: "a-cau-sw", universityId: "u-cau", departmentId: "d-cau-sw", academicYear: 2027, name: "학생부종합(다빈치형인재)", type: "학종", interview: false, csatMinimum: { enabled: true, description: "mock" }, source: MOCK_SOURCE },
   { id: "a-uos-cs", universityId: "u-uos", departmentId: "d-uos-cs", academicYear: 2027, name: "학생부종합", type: "학종", interview: true, csatMinimum: { enabled: false }, source: MOCK_SOURCE },
