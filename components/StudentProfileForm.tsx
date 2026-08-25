@@ -85,3 +85,5 @@ export function StudentProfileForm({ profile, onChange }: Props) {
     </div>
   );
 }
+
+// Keep this form intentionally tolerant of the initial null state used by the app template.
