@@ -1,7 +1,7 @@
 import type { Admission, Department, University } from "./types";
 
 export const verified2027Universities: University[] = [
-  { id: "skku", name: "성균관대학교", region: "서울/경기" },
+  { id: "skku", name: "성균관대학교", region: "경기" },
   { id: "uos", name: "서울시립대학교", region: "서울" },
   { id: "konkuk", name: "건국대학교", region: "서울" },
   { id: "ewha", name: "이화여자대학교", region: "서울" },
