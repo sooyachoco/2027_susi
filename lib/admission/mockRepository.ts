@@ -1,9 +1,12 @@
 import { admissions, departments, universities } from "./mockData";
-import type { AdmissionQuery, AdmissionRepository } from "./types";
+import type { AdmissionQuery, AdmissionRegion, AdmissionRepository } from "./types";
+
+const TARGET_REGIONS: AdmissionRegion[] = ["서울", "경기", "인천"];
 
 export class MockAdmissionRepository implements AdmissionRepository {
-  async getUniversities(region?: string) {
-    return region ? universities.filter((u) => u.region === region) : universities;
+  async getUniversities(region?: AdmissionRegion) {
+    const scope = region ? [region] : TARGET_REGIONS;
+    return universities.filter((u) => scope.includes(u.region));
   }
 
   async getDepartments(universityId?: string) {
@@ -11,13 +14,14 @@ export class MockAdmissionRepository implements AdmissionRepository {
   }
 
   async getAdmissions(query: AdmissionQuery = {}) {
-    const allowedUniversityIds = query.region
-      ? new Set(universities.filter((u) => u.region === query.region).map((u) => u.id))
-      : undefined;
+    const scope = query.region ? [query.region] : TARGET_REGIONS;
+    const allowedUniversityIds = new Set(
+      universities.filter((u) => scope.includes(u.region)).map((u) => u.id)
+    );
 
     return admissions.filter((a) =>
       (!query.academicYear || a.academicYear === query.academicYear) &&
-      (!query.region || allowedUniversityIds?.has(a.universityId)) &&
+      allowedUniversityIds.has(a.universityId) &&
       (!query.universityId || a.universityId === query.universityId) &&
       (!query.departmentId || a.departmentId === query.departmentId) &&
       (!query.type || a.type === query.type)
