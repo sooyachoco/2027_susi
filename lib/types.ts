@@ -12,7 +12,7 @@ export type {
   AdmissionRepository,
 } from "./admission/types";
 
-export type Track = "自然系" | "인문계" | "예체능";
+export type Track = "자연계" | "인문계" | "예체능";
 
 /** User-entered fields remain nullable until the student actually provides them. */
 export type StudentProfile = {
