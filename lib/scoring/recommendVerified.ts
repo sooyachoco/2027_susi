@@ -1,30 +1,40 @@
 import type { Admission, Recommendation, StudentProfile } from "@/lib/types";
-import { MOCK_RECOMMENDATION_SEEDS } from "@/lib/data/mock";
 
+/** 2027 전형 데이터의 실제 속성을 반영하는 1차 전략 추천 엔진. 합격확률이 아닌 전략 적합도다. */
 export function recommendSix(student: StudentProfile, admissions: Admission[], offset = 0): Recommendation[] {
-  const byId = new Map(admissions.map((a) => [a.id, a]));
-  const seeds = MOCK_RECOMMENDATION_SEEDS.map((seed) => ({ ...seed }));
+  const scored = admissions.map((admission) => {
+    const grade = clamp(100 - (student.gradeAverage - 1) * 10.5);
+    const record = (student.studentRecordLink / 5) * 100;
+    const mock = clamp(100 - (student.mockAverage - 1) * 9);
+    let score = grade * 0.35 + record * 0.35 + mock * 0.30;
 
-  if (byId.has("a-kku-self-verified")) {
-    seeds[1] = { admissionId: "a-kku-self-verified", tier: "상향", baseScore: 80, reason: "2027 KU 자기추천: 서류평가 후 면접이 있는 학종입니다. 학생부 전공연계가 강할수록 유리한 전략 카드입니다." };
-  }
-  if (byId.has("a-kku-region-verified")) {
-    seeds[2] = { admissionId: "a-kku-region-verified", tier: "적정", baseScore: 85, reason: "2027 KU 지역균형: 학생부교과 중심 전형입니다. 내신 경쟁력을 바탕으로 적정 카드로 검토합니다." };
-  }
+    if (admission.type === "학종") score += student.studentRecordLink >= 4 ? 5 : -2;
+    if (admission.type === "교과") score += student.gradeAverage <= 2.5 ? 5 : -3;
+    if (admission.interview) score += student.studentRecordLink >= 4 ? 2 : -2;
+    if (admission.csatMinimum?.enabled) score += student.csatMinimumChance >= 4 ? 4 : -7;
+    if (admission.isMock === false) score += 2;
 
-  return seeds.filter((seed) => byId.has(seed.admissionId)).map((seed, i) => {
-    const admission = byId.get(seed.admissionId)!;
-    let score = seed.baseScore;
-    if (admission.type === "학종") {
-      score += Math.round((student.studentRecordLink - 3) * 2);
-      if (admission.interview) score += 1;
-    }
-    if (admission.type === "교과") score += Math.round((3 - student.gradeAverage) * 3);
-    if (admission.csatMinimum?.enabled) score += Math.round((student.csatMinimumChance - 3) * 1.5);
-    score = Math.max(60, Math.min(96, score + offset + (i % 2 ? 1 : 0)));
-    return { tier: seed.tier, admissionId: seed.admissionId, score, reason: seed.reason };
-  });
+    return { admission, score: Math.round(clamp(score + offset)) };
+  }).sort((a, b) => b.score - a.score);
+
+  const tiers = ["상향", "상향", "적정", "적정", "적정", "안정"] as const;
+  return scored.slice(0, 6).map((item, index) => ({
+    tier: tiers[index],
+    admissionId: item.admission.id,
+    score: item.score,
+    reason: buildReason(item.admission, item.score),
+  }));
 }
+
+function buildReason(admission: Admission, score: number) {
+  const parts = [admission.type === "학종" ? "학생부 중심" : "교과 중심"];
+  if (admission.interview) parts.push("면접 변수 있음");
+  if (admission.csatMinimum?.enabled) parts.push("수능최저 확인 필요");
+  if (admission.source?.type === "adiga" || admission.isMock === false) parts.push("2027 확인 데이터");
+  return `${parts.join(" · ")} · 전략 적합도 ${score}`;
+}
+
+function clamp(value: number) { return Math.max(45, Math.min(98, value)); }
 
 export function nextShuffleOffset(offset: number): number {
   if (offset === 0) return 3;
