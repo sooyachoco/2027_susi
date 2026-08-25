@@ -1,43 +1,23 @@
 import type { Admission, AdmissionQuery, Department, University } from "@/lib/types";
-import { MOCK_ADMISSIONS, MOCK_DEPARTMENTS, MOCK_UNIVERSITIES } from "@/lib/data/mock";
 import { METRO_ADMISSIONS, METRO_DEPARTMENTS, METRO_UNIVERSITIES } from "@/lib/admission/metro2027";
 import type { AdmissionRepository } from "./AdmissionRepository";
 
-const verifiedAdmissions = METRO_ADMISSIONS.filter((a) => a.isMock === false);
-const verifiedUniversityIds = new Set(METRO_UNIVERSITIES.map((u) => u.id));
-const verifiedDepartmentIds = new Set(METRO_DEPARTMENTS.map((d) => d.id));
-
-const universities: University[] = [
-  ...METRO_UNIVERSITIES,
-  ...MOCK_UNIVERSITIES.filter((u) => !verifiedUniversityIds.has(u.id)),
-];
-
-const departments: Department[] = [
-  ...METRO_DEPARTMENTS,
-  ...MOCK_DEPARTMENTS.filter((d) => !verifiedDepartmentIds.has(d.id)),
-];
-
-const mergedAdmissions: Admission[] = [
-  ...verifiedAdmissions,
-  ...MOCK_ADMISSIONS.filter(
-    (mock) => !verifiedAdmissions.some(
-      (real) => real.universityId === mock.universityId && real.departmentId === mock.departmentId,
-    ),
-  ),
-];
-
+/**
+ * 2027 수도권(서울·경기·인천) 검증 카탈로그를 기본 데이터로 사용한다.
+ * 모집인원/입결 등 아직 원문 검증되지 않은 수치는 데이터에 넣지 않는다.
+ */
 export class VerifiedHybridAdmissionRepository implements AdmissionRepository {
   async getUniversities(region?: University["region"]): Promise<University[]> {
-    return region ? universities.filter((u) => u.region === region) : universities;
+    return region ? METRO_UNIVERSITIES.filter((u) => u.region === region) : METRO_UNIVERSITIES;
   }
 
   async getDepartments(universityId?: string): Promise<Department[]> {
-    return universityId ? departments.filter((d) => d.universityId === universityId) : departments;
+    return universityId ? METRO_DEPARTMENTS.filter((d) => d.universityId === universityId) : METRO_DEPARTMENTS;
   }
 
   async getAdmissions(params?: AdmissionQuery): Promise<Admission[]> {
-    return mergedAdmissions.filter((a) => {
-      const university = universities.find((u) => u.id === a.universityId);
+    return METRO_ADMISSIONS.filter((a) => {
+      const university = METRO_UNIVERSITIES.find((u) => u.id === a.universityId);
       if (params?.academicYear && a.academicYear !== params.academicYear) return false;
       if (params?.region && university?.region !== params.region) return false;
       if (params?.universityId && a.universityId !== params.universityId) return false;
