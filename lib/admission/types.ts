@@ -68,13 +68,14 @@ export type Recommendation = {
 
 export type AdmissionQuery = {
   academicYear?: number;
+  region?: string;
   universityId?: string;
   departmentId?: string;
   type?: AdmissionType;
 };
 
 export interface AdmissionRepository {
-  getUniversities(): Promise<University[]>;
+  getUniversities(region?: string): Promise<University[]>;
   getDepartments(universityId?: string): Promise<Department[]>;
   getAdmissions(query?: AdmissionQuery): Promise<Admission[]>;
 }
