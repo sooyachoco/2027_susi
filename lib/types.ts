@@ -39,25 +39,22 @@ export type Admission = {
 
 export type Track = "자연계" | "인문계" | "예체능";
 
+/** User-entered fields are nullable until the student actually provides them. */
 export type StudentProfile = {
-  gradeAverage: number;
-  track: Track;
+  gradeAverage: number | null;
+  track: Track | null;
   desiredMajor: string;
-  mockAverage: number;
-  /** 학생부 전공연계 (2~5) */
-  studentRecordLink: number;
-  /** 수능최저 충족 가능성 (2~5) */
-  csatMinimumChance: number;
+  mockAverage: number | null;
+  /** 학생부 전공연계 (2~5), null = 미입력 */
+  studentRecordLink: number | null;
+  /** 수능최저 충족 가능성 (2~5), null = 미입력 */
+  csatMinimumChance: number | null;
 };
 
 export type Competitiveness = {
-  /** 교과 경쟁력 */
   subject: number;
-  /** 학종 경쟁력 */
   holistic: number;
-  /** 수능최저 가능성 */
   csatMinimum: number;
-  /** 종합 경쟁력 */
   total: number;
 };
 
