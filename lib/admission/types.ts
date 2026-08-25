@@ -1,5 +1,6 @@
 export type AdmissionType = "교과" | "학종" | "논술" | "기타";
 export type StrategyTier = "상향" | "적정" | "안정";
+export type AdmissionRegion = "서울" | "경기" | "인천";
 
 export type SourceType = "university" | "adiga" | "kcue" | "other";
 
@@ -17,7 +18,7 @@ export type DataSource = {
 export type University = {
   id: string;
   name: string;
-  region?: string;
+  region: AdmissionRegion;
 };
 
 export type Department = {
@@ -68,14 +69,14 @@ export type Recommendation = {
 
 export type AdmissionQuery = {
   academicYear?: number;
-  region?: string;
+  region?: AdmissionRegion;
   universityId?: string;
   departmentId?: string;
   type?: AdmissionType;
 };
 
 export interface AdmissionRepository {
-  getUniversities(region?: string): Promise<University[]>;
+  getUniversities(region?: AdmissionRegion): Promise<University[]>;
   getDepartments(universityId?: string): Promise<Department[]>;
   getAdmissions(query?: AdmissionQuery): Promise<Admission[]>;
 }
