@@ -1,0 +1,1 @@
+Deployment trigger for the configured Cloudflare GitHub Actions secrets. No application logic changes.
