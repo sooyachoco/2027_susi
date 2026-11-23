@@ -19,6 +19,7 @@ export type University = {
   id: string;
   name: string;
   region: AdmissionRegion;
+  location?: string;
 };
 
 export type Department = {
