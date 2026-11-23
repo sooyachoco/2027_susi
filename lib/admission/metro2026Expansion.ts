@@ -1,4 +1,17 @@
-import type { AdmissionRecord, Department, University } from "./types";
+import type { AdmissionType, Department, University } from "./types";
+
+type AdmissionRecord = {
+  id: string;
+  universityId: string;
+  departmentId: string;
+  academicYear: number;
+  type: AdmissionType;
+  name: string;
+  quota: number;
+  competitionRate: number;
+  source: string;
+  verified: boolean;
+};
 
 /**
  * 수도권(경기·인천) 2026 결과 연결용 데이터.
